@@ -24,7 +24,7 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(user));
 
         toast.success("Register Successfull")
-        navigate("/home");
+        navigate("/");
 
       } catch (error) {
         toast.error(error.response?.data?.message || "Login failed. Please try again.");
@@ -46,7 +46,8 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(user));
 
         toast.success("Login Successfull")
-        navigate("/home");
+        navigate("/");
+        window.location.reload()
       } catch (error) {
         toast.error(error.response?.data?.message || "Login failed. Please try again.");
         console.error("Login Error:", error);
