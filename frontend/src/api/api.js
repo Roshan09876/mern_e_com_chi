@@ -1,0 +1,36 @@
+import axios from "axios";
+
+const apis = "http://localhost:4000";
+const Api = axios.create({
+    baseURL: apis,
+    withCredentials: true,
+    headers: {
+        "Content-Type": "application/json",
+    },
+})
+
+const ApiWithFormData = axios.create({
+     baseURL: apis,
+    withCredentials: true,
+    headers: {
+        "Content-Type": "multipart/form-data",
+    },
+})
+
+const token = localStorage.getItem('_mountview_token_')
+
+const config = {
+    headers: {
+        Authorization: `Bearer ${token}`,
+    },
+}
+
+// login api 
+export const loginApi = (data) => Api.post('/api/user/login', data);
+export const registerApi = (data) => Api.post('/api/user/register', data);
+
+
+export const getAllProductApi = () => Api.get('/api/product/list');
+export const getProductByIDApi = (id) => Api.get(`/api/product/single/${id}`);
+
+export default Api;
