@@ -1,87 +1,116 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { ShopContext } from '../context/ShopContext';
+import React, { useEffect, useState } from 'react';
 import Title from '../components/Title';
 import { assets } from '../assets/assets';
-import CartTotal from '../components/CartTotal';
+import { getAllCartItems } from '../api/api';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
-  const { products, currency, cartItems, updateQuantity, navigate } = useContext(ShopContext);
   const [cartData, setCartData] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const tempData = [];
-    for (const items in cartItems) {
-      for (const item in cartItems[items]) {
-        if (cartItems[items][item] > 0) {
-          tempData.push({
-            _id: items,
-            size: item,
-            quantity: cartItems[items][item],
-          });
-        }
+    fetchCartItems();
+  }, []);
+
+  const fetchCartItems = async () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return;
+
+      const user = JSON.parse(userStr);
+      const userId = user._id;
+
+      const res = await getAllCartItems(userId);
+      if (res.status === 200) {
+        setCartData(res.data.cart);
+        calculateTotal(res.data.cart);
       }
+    } catch (error) {
+      console.error("Error fetching cart items", error);
     }
-    setCartData(tempData);
-  }, [cartItems]);
+  };
+
+  const calculateTotal = (cart) => {
+    const total = cart.reduce((acc, item) => {
+      return acc + item.product.price * item.quantity;
+    }, 0);
+    setCartTotal(total);
+  };
 
   const isCartEmpty = cartData.length === 0;
 
   return (
-    <div className='border-t pt-14'>
-      <div className='mb-3 text-2xl'>
+    <div className='border-t pt-14 px-4 sm:px-16 md:px-32'>
+      <div className='mb-6 text-3xl font-semibold text-center'>
         <Title text1={'YOUR'} text2={'CART'} />
       </div>
-      <div>
+
+      <div className='space-y-6'>
         {cartData.map((item, index) => {
-          const productData = products.find((product) => product._id === item._id);
+          const product = item.product;
+          const quantity = item.quantity;
 
           return (
-            <div key={index} className='grid py-4 text-gray-700 border-t border-b grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4'>
-              <div className='flex items-start gap-6'>
-                <img className='w-16 sm:w-20' src={productData.image[0]} alt="Photo" />
-                <div>
-                  <p className='text-sm font-medium sm:text-lg'>{productData.name}</p>
-                  <div className='flex items-center gap-5 mt-2'>
-                    <p>
-                      {currency}&nbsp;{productData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                    <p className='px-2 border sm:px-3 sm:py-1 bg-slate-50'>{item.size}</p>
-                  </div>
+            <div
+              key={index}
+              className='flex flex-col sm:flex-row items-center justify-between border border-gray-200 rounded-lg p-4 shadow-sm'
+            >
+              <div className='flex gap-4 items-center w-full sm:w-2/3'>
+                <img className='w-20 h-20 object-cover rounded' src={product.image[0]} alt={product.name} />
+                <div className='text-gray-800'>
+                  <p className='text-base font-medium'>{product.name}</p>
+                  <p className='text-sm mt-1 text-gray-500'>₹ {product.price.toFixed(2)} x {quantity}</p>
                 </div>
               </div>
-              <input
-                onChange={(e) => e.target.value === '' || e.target.value === '0' ? null : updateQuantity(item._id, item.size, Number(e.target.value))} 
-                className='px-1 py-1 border max-w-10 sm:max-w-20 sm:px-2' 
-                type="number" 
-                min={1} 
-                defaultValue={item.quantity} 
-              />
-              <img 
-                onClick={() => updateQuantity(item._id, item.size, 0)} 
-                className='w-4 mr-4 cursor-pointer sm:w-5' 
-                src={assets.bin_icon} 
-                alt="Remove" 
-              />
+
+              <div className='flex items-center gap-4 mt-3 sm:mt-0'>
+                <input
+                  type="number"
+                  min={1}
+                  defaultValue={quantity}
+                  readOnly
+                  className='w-12 px-2 py-1 border text-center rounded'
+                />
+                <img
+                  src={assets.bin_icon}
+                  alt="Delete"
+                  className='w-5 cursor-pointer'
+                />
+              </div>
             </div>
           );
         })}
       </div>
-      <div className='flex justify-end my-20'>
-        <div className='w-full sm:w-[450px]'>
-          <CartTotal />
-          <div className='w-full text-end'>
-            <button 
-              onClick={() => navigate('/place-order')} 
-              className={`px-8 py-3 my-8 text-sm text-white bg-black active:bg-gray-700 ${isCartEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={isCartEmpty}
-            >
-              PROCEED TO CHECKOUT
-            </button>
+
+      {/* Total Section */}
+      <div className='mt-10 flex justify-end'>
+        <div className='w-full sm:w-[400px] border rounded-lg p-6 bg-gray-50 shadow-md'>
+          <h2 className='text-lg font-semibold mb-4 text-gray-700'>Order Summary</h2>
+          <div className='flex justify-between mb-2'>
+            <p className='text-sm text-gray-600'>Subtotal</p>
+            <p className='font-medium'>₹ {cartTotal.toFixed(2)}</p>
           </div>
+          <div className='flex justify-between mb-4'>
+            <p className='text-sm text-gray-600'>Shipping</p>
+            <p className='font-medium text-green-600'>FREE</p>
+          </div>
+          <hr className='my-2' />
+          <div className='flex justify-between font-semibold text-gray-800 text-lg'>
+            <p>Total</p>
+            <p>₹ {cartTotal.toFixed(2)}</p>
+          </div>
+          <button
+            onClick={() => navigate('/place-order')}
+            className={`w-full mt-6 py-3 bg-black text-white rounded hover:bg-gray-800 transition duration-200 ${isCartEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isCartEmpty}
+          >
+            PROCEED TO CHECKOUT
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Cart;
