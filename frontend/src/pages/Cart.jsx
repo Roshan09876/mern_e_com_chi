@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Title from '../components/Title';
 import { assets } from '../assets/assets';
-import { getAllCartItems } from '../api/api';
+import { getAllCartItems, removeFromCart } from '../api/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Cart = () => {
   const [cartData, setCartData] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
+  const [removingItemId, setRemovingItemId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,14 +30,44 @@ const Cart = () => {
       }
     } catch (error) {
       console.error("Error fetching cart items", error);
+      toast.error("Failed to load cart items");
     }
   };
 
   const calculateTotal = (cart) => {
-    const total = cart.reduce((acc, item) => {
-      return acc + item.product.price * item.quantity;
-    }, 0);
+    const total = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
     setCartTotal(total);
+  };
+
+  const handleRemove = async (productId) => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      toast.error("Please login to remove items from cart");
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    const userId = user._id;
+
+    try {
+      setRemovingItemId(productId);
+
+      const res = await removeFromCart({ userId, productId });
+
+      if (res.status === 200 && res.data.success) {
+        const updatedCart = cartData.filter(item => item.product._id !== productId);
+        setCartData(updatedCart);
+        calculateTotal(updatedCart);
+        toast.success(res.data.message || "Item removed from cart");
+      } else {
+        toast.error(res.data.message || "Failed to remove item");
+      }
+    } catch (error) {
+      console.error("Remove cart error:", error);
+      toast.error("Error removing item from cart");
+    } finally {
+      setRemovingItemId(null);
+    }
   };
 
   const isCartEmpty = cartData.length === 0;
@@ -72,11 +104,37 @@ const Cart = () => {
                   readOnly
                   className='w-12 px-2 py-1 border text-center rounded'
                 />
-                <img
-                  src={assets.bin_icon}
-                  alt="Delete"
-                  className='w-5 cursor-pointer'
-                />
+                <button
+                  onClick={() => handleRemove(product._id)}
+                  disabled={removingItemId === product._id}
+                  className='focus:outline-none'
+                  title="Remove from cart"
+                >
+                  {removingItemId === product._id ? (
+                    <svg
+                      className="animate-spin h-5 w-5 text-red-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      />
+                    </svg>
+                  ) : (
+                    <img src={assets.bin_icon} alt="Delete" className='w-5 cursor-pointer' />
+                  )}
+                </button>
               </div>
             </div>
           );

@@ -36,6 +36,10 @@ export const getProductByIDApi = (id) => Api.get(`/api/product/single/${id}`);
 //cart
 export const addToCartApi = (data) => Api.post('/api/cart/add', data);
 export const getAllCartItems = (id) => Api.get(`/api/cart/list/${id}`);
+// Correct removeFromCart API to send data in axios.delete config
+export const removeFromCart = (data) => 
+  Api.delete('/api/cart/remove', { data, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+
 
 
 export default Api;

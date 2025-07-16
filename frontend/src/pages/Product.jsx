@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import { getProductByIDApi } from '../api/api';
+import { getProductByIDApi, addToCartApi } from '../api/api';
 
 const Product = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const fetchProductData = async () => {
     try {
@@ -16,10 +18,11 @@ const Product = () => {
       const fetchedProduct = res.data.product;
       setProduct(fetchedProduct);
       if (fetchedProduct?.image?.length > 0) {
-        setSelectedImage(fetchedProduct.image[0]); 
+        setSelectedImage(fetchedProduct.image[0]);
       }
     } catch (error) {
       console.error("Error fetching product:", error);
+      toast.error("Failed to load product details");
     }
   };
 
@@ -27,7 +30,44 @@ const Product = () => {
     fetchProductData();
   }, [productId]);
 
-  return product ? (
+  const handleAddToCart = async () => {
+    if (!selectedSize) {
+      toast.warn("Please select a size before adding to cart");
+      return;
+    }
+
+    const userString = localStorage.getItem('user');
+    if (!userString) {
+      toast.error('Please login first!');
+      return;
+    }
+
+    const user = JSON.parse(userString);
+    const userId = user._id;
+
+    if (!userId) {
+      toast.error('User ID not found, please login again!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const quantity = 1; // or let user select quantity later
+
+      const response = await addToCartApi({ userId, productId, quantity });
+
+      toast.success(response.data.message || "Added to cart!");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to add to cart.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!product) return <div>Loading...</div>;
+
+  return (
     <div className='pt-10 transition-opacity duration-500 ease-in border-t-2 opacity-100'>
       {/* Product Detail */}
       <div className='flex flex-col gap-12 sm:gap-12 sm:flex-row'>
@@ -54,14 +94,9 @@ const Product = () => {
         {/* Product Info */}
         <div className='flex-1'>
           <h1 className='mt-2 text-2xl font-medium'>{product.name}</h1>
-          <div className='flex items-center gap-1 mt-2'>
-            <img src={assets.star_icon} alt="Ratings" className="w-3.5" />
-            <img src={assets.star_icon} alt="Ratings" className="w-3.5" />
-            <img src={assets.star_icon} alt="Ratings" className="w-3.5" />
-            <img src={assets.star_icon} alt="Ratings" className="w-3.5" />
-            <img src={assets.star_dull_icon} alt="Ratings" className="w-3.5" />
-            <p className='pl-2'>(122)</p>
-          </div>
+
+          {/* Rating stars if you want */}
+
           <p className='mt-5 text-3xl font-medium'>${product.price}</p>
           <p className='mt-5 text-gray-500 md:w-4/5'>{product.description}</p>
 
@@ -83,14 +118,11 @@ const Product = () => {
           </div>
 
           <button
-            onClick={() => {
-              // Add to cart logic here
-              // addToCart(product._id, selectedSize)
-              console.log('Add to cart:', product._id, selectedSize);
-            }}
-            className='px-8 py-3 text-sm text-white bg-black active:bg-gray-700'
+            disabled={loading}
+            onClick={handleAddToCart}
+            className='px-8 py-3 text-sm text-white bg-black active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            ADD TO CART
+            {loading ? 'ADDING...' : 'ADD TO CART'}
           </button>
 
           <hr className='mt-8 sm:w-4/5' />
@@ -124,8 +156,6 @@ const Product = () => {
       {/* Related Products */}
       <RelatedProducts category={product.category} subCategory={product.subCategory} />
     </div>
-  ) : (
-    <div className='opacity-0'></div>
   );
 };
 
