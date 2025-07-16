@@ -43,6 +43,7 @@ const loginUser = async (req, res) => {
 
 // INFO: Route for user registration
 const registerUser = async (req, res) => {
+  console.log(req.body)
   try {
     const { name, email, password } = req.body;
 
@@ -115,5 +116,17 @@ const loginAdmin = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const id  = req.params.id;
+    const user = await userModel.findById(id)
+    res.status(200).json({ success: true, user });
 
-export { loginUser, registerUser, loginAdmin };
+  } catch (error) {
+    console.log("Error while logging in admin: ", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+export { loginUser, registerUser, loginAdmin, getProfile };
