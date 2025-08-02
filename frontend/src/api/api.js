@@ -28,6 +28,7 @@ const config = {
 // login api 
 export const loginApi = (data) => Api.post('/api/user/login', data);
 export const registerApi = (data) => Api.post('/api/user/register', data);
+export const getProfileApi = (id) => Api.get(`/api/user/profile/${id}`);
 
 //product
 export const getAllProductApi = () => Api.get('/api/product/list');

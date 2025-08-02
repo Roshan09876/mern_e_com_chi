@@ -12,7 +12,7 @@ const Cart = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchCartItems();
+    fetchCartItems();  
   }, []);
 
   const fetchCartItems = async () => {

@@ -78,7 +78,9 @@ const NavBar = () => {
                     </Link>
                     <div className='absolute right-0 hidden pt-4 group-hover:block dropdown-menu'>
                         <div className='flex flex-col gap-2 px-5 py-3 text-gray-500 rounded w-36 bg-slate-100'>
+                           <Link to="/profile" >
                             <p className='cursor-pointer hover:text-black'>Profile</p>
+                           </Link>
                             <p className='cursor-pointer hover:text-black'>Orders</p>
                             <p onClick={() => handleLogout()} className='cursor-pointer hover:text-black'>Logout</p>
                         </div>

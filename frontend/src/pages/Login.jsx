@@ -16,15 +16,11 @@ const Login = () => {
     if (currentState === "Sign Up") {
       try {
         const response = await registerApi({ name, email, password });
-        const { token, user } = response.data;
 
-        localStorage.clear();
+        if (response.status === 200 || response.status === 201) {
+          toast.success("Register Successfull")
+        }
 
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-
-        toast.success("Register Successfull")
-        navigate("/");
 
       } catch (error) {
         toast.error(error.response?.data?.message || "Login failed. Please try again.");
@@ -39,7 +35,6 @@ const Login = () => {
       try {
         const response = await loginApi({ email, password });
         const { token, user } = response.data;
-        localStorage.clear();
 
         // Save token
         localStorage.setItem("token", token);

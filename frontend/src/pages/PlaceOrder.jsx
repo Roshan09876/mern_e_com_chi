@@ -76,7 +76,7 @@ const PlaceOrder = () => {
         {/* Payment Methods Selection */}
         <div className='mt-12'>
           <Title text1={'PAYMENT'} text2={'METHODS'} />
-          <div className='flex flex-col gap-3 lg:flex-row'>
+          {/* <div className='flex flex-col gap-3 lg:flex-row'>
             <div onClick={() => setMethod('stripe')} className='flex items-center gap-3 p-2 px-3 border cursor-pointer'>
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'stripe' ? 'bg-green-600' : ''}`}></p>
               <img className='h-5 mx-4' src={assets.stripe_logo} alt="Stripe" />
@@ -89,9 +89,10 @@ const PlaceOrder = () => {
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cod' ? 'bg-green-600' : ''}`}></p>
               <p className='mx-4 text-sm font-medium text-gray-500'>CASH ON DELIVERY</p>
             </div>
-          </div>
+          </div> */}
           <div className='w-full mt-8 text-end'>
-            <button onClick={() => navigate('/orders')} className='px-16 py-3 text-sm text-white bg-black active:bg-gray-800'>PLACE ORDER</button>
+            <button  className='px-16 py-3 text-sm text-white bg-black active:bg-gray-800'>PLACE ORDER</button>
+            {/* <button onClick={() => navigate('/orders')} className='px-16 py-3 text-sm text-white bg-black active:bg-gray-800'>PLACE ORDER</button> */}
           </div>
         </div>
       </div>
